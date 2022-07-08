@@ -2,9 +2,20 @@ class Account {
 
   constructor(username) {
     this.username = username;
-    this.balance = 0;
+    this.transactions = [];
   }
 
+  get balance() {
+    let balance = 0;
+    for (let transaction of this.transactions) {
+      balance += transaction.value;
+    }
+    return balance;
+  }
+
+  addTransaction(transaction) {
+    this.transactions.push(transaction);
+  }
 }
 
 class Transaction {
@@ -12,20 +23,36 @@ class Transaction {
     this.amount = amount;
     this.account = account;
   }
+
+  commit() {
+    if (this.isAllowed()) {
+      this.time = new Date();
+      this.account.addTransaction(this);
+    } else {
+      console.log('This transaction is not allowed');
+    }
+  }
+
+  isAllowed() {
+    if (this.account.balance + this.value < 0) {
+      return false;
+    }
+    return true;
+  }
 }
 
 class Withdrawal extends Transaction {
 
-  commit() {
-    this.account.balance -= this.amount;
+  get value() {
+    return -this.amount;
   }
 
 }
 
 class Deposit extends Transaction {
 
-  commit() {
-    this.account.balance += this.amount;
+  get value() {
+    return this.amount;
   }
 
 }
@@ -36,7 +63,7 @@ class Deposit extends Transaction {
 // DRIVER CODE BELOW
 // We use the code below to "drive" the application logic above and make sure it's working as expected
 const myAccount = new Account("snow-patrol");
-t1 = new Withdrawal(50.25, myAccount);
+t1 = new Deposit(50.25, myAccount);
 t1.commit();
 console.log('Transaction 1:', t1);
 
